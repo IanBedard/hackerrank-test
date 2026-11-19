@@ -10,3 +10,12 @@
 - Your code and progress are saved in your browser
 
 Open `index.html` locally or view it on GitHub Pages.
+
+## Practice Set 2
+
+`set2.html` adds a second set, laid out like the real test:
+
+- **Multiple choice:** 18 questions on HTML, CSS, JavaScript and APIs, with explanations
+- **Coding:** 9 JavaScript problems, including an async `fetch` question with a mock API and large-input performance tests
+- **References:** practice writing the "sources used" note
+- Optional 120-minute timer
