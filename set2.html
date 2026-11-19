@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Dev Practice Set 2</title>
+<style>
+:root{
+  --bg:#f7f7f5; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e3e2dd;
+  --accent:#2457c5; --accent-ink:#ffffff; --ok:#1f7a45; --ok-bg:#e8f5ec; --bad:#b3261e; --bad-bg:#fcebea;
+  --code-bg:#f1f0ec; --editor-bg:#1e1f22; --editor-ink:#e6e6e3;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#161615; --panel:#1f1f1d; --ink:#ecebe7; --muted:#a3a29c; --line:#34332f;
+    --accent:#7aa2ff; --accent-ink:#0e1a33; --ok:#6fcf97; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1a18;
+    --code-bg:#2a2a27; --editor-bg:#121212; }
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;font-weight:650}
+.tabs{display:flex;gap:4px}
+.tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.timer{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.timer span{font-weight:650;min-width:62px;text-align:right}
+button{font:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn:focus-visible,.tab:focus-visible,textarea:focus-visible,.qitem:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{max-width:1200px;margin:0 auto;padding:20px}
+.view[hidden]{display:none}
+code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);padding:10px 12px;border-radius:8px;overflow:auto;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:8px 0}
+pre code{background:none;padding:0}
+.note{color:var(--muted);font-size:14px;margin:0 0 16px}
+/* coding */
+.coding{display:grid;grid-template-columns:230px 1fr;gap:20px}
+@media (max-width:820px){.coding{grid-template-columns:1fr}}
+.qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.qitem{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid transparent;background:transparent;color:var(--ink);padding:8px 10px;border-radius:8px;cursor:pointer}
+.qitem:hover{background:var(--panel);border-color:var(--line)}
+.qitem[aria-current="true"]{background:var(--panel);border-color:var(--accent)}
+.lvl{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.done{color:var(--ok);font-weight:700}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.card h2{margin:0 0 6px;font-size:20px}
+textarea.editor{width:100%;min-height:280px;resize:vertical;background:var(--editor-bg);color:var(--editor-ink);border:1px solid var(--line);border-radius:8px;padding:12px;font:13.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2;margin-top:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.results{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:6px}
+.results li{border-radius:8px;padding:8px 10px;font-size:13.5px}
+.results li.pass{background:var(--ok-bg)}
+.results li.fail{background:var(--bad-bg)}
+.results .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}
+.summary{font-weight:650;margin-top:8px}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:10px}
+summary{cursor:pointer;font-weight:600}
+.logs{white-space:pre-wrap}
+/* mcq */
+.mcq{display:flex;flex-direction:column;gap:14px;max-width:820px}
+.mcq fieldset{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 18px;margin:0}
+.mcq legend{font-weight:600;padding:0 6px}
+.sec{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-right:6px}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:5px 6px;border-radius:6px}
+.opt.right{background:var(--ok-bg)}
+.opt.wrong{background:var(--bad-bg)}
+.expl{margin-top:8px;font-size:14px;color:var(--ink)}
+.score{position:sticky;bottom:12px;align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:650}
+/* references */
+.refs textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:8px;padding:12px;font:14px/1.5 system-ui,sans-serif;background:var(--panel);color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Web Dev Practice Set 2 <a href="index.html" style="font-size:13px;font-weight:500;margin-left:8px;color:var(--accent)">← Set 1</a></h1>
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-mcq" aria-controls="view-mcq" aria-selected="true">Multiple choice</button>
+    <button class="tab" role="tab" id="tab-code" aria-controls="view-code" aria-selected="false">Coding</button>
+    <button class="tab" role="tab" id="tab-refs" aria-controls="view-refs" aria-selected="false">References</button>
+  </div>
+  <div class="timer">
+    <span id="clock" aria-live="off">120:00</span>
+    <button class="btn" id="timerBtn">Start 120-min timer</button>
+    <button class="btn" id="timerReset">Reset</button>
+  </div>
+</header>
+
+<main>
+  <section class="view" id="view-mcq" role="tabpanel" aria-labelledby="tab-mcq">
+    <p class="note">18 questions across HTML, CSS, JS and APIs (API is weighted heaviest, like the real test). Pick an answer to see the explanation right away.</p>
+    <div class="mcq" id="mcq"></div>
+  </section>
+
+  <section class="view" id="view-code" role="tabpanel" aria-labelledby="tab-code" hidden>
+    <p class="note">Write JavaScript, then click <b>Run tests</b> (or press Ctrl/⌘ + Enter). Some tests are hidden, so think about edge cases. Each test has a 3-second limit. <code>console.log</code> output appears under the results.</p>
+    <div class="coding">
+      <nav aria-label="Coding questions"><ul class="qlist" id="qlist"></ul></nav>
+      <div class="card" id="qcard"></div>
+    </div>
+  </section>
+
+  <section class="view refs" id="view-refs" role="tabpanel" aria-labelledby="tab-refs" hidden>
+    <div class="card">
+      <h2>Practice: the References question</h2>
+      <p>The real test ends with a written question where you document any outside sources you used. Practise keeping a running log while you work. For each source, note <b>what</b> it was, <b>what you asked or looked up</b>, and <b>what you used from it</b>.</p>
+      <label for="refs" class="sr">Your references</label>
+      <textarea id="refs"></textarea>
+      <div class="row"><button class="btn" id="refsTemplate">Insert template</button><span class="note" style="margin:0">Saved in this browser only.</span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ===== Coding questions =====
+const Q = [
+{
+  id: "first-unique", title: "First unique character", level: "Easy", fn: "firstUniqueChar",
+  desc: String.raw`<p>Return the <b>first character</b> in the string that appears <b>exactly once</b>. The comparison is case-sensitive (<code>"a"</code> and <code>"A"</code> are different). If no character is unique, return <code>null</code>.</p>
+<pre>firstUniqueChar("leetcode")  // "l"
+firstUniqueChar("aabb")      // null</pre>`,
+  starter: String.raw`function firstUniqueChar(s) {
+  // your code here
+}`,
+  tests: [
+    {args:["leetcode"], expected:"l"},
+    {args:["loveleetcode"], expected:"v"},
+    {args:["aabb"], expected:null},
+    {args:[""], expected:null, hidden:true},
+    {args:["aAbB"], expected:"a", hidden:true},
+    {args:["zzyx"], expected:"y", hidden:true},
+  ],
+  hints: [
+    "Two passes: first count every character, then loop again in the original order.",
+    "A <code>Map</code> works well for counting: <code>counts.set(c, (counts.get(c) || 0) + 1)</code>.",
+  ],
+  solution: String.raw`function firstUniqueChar(s) {
+  const counts = new Map();
+  for (const c of s) counts.set(c, (counts.get(c) || 0) + 1);
+  for (const c of s) {
+    if (counts.get(c) === 1) return c;
+  }
+  return null;
+}`
+},
+{
+  id: "reverse-words", title: "Reverse words", level: "Easy", fn: "reverseWords",
+  desc: String.raw`<p>Return the words of the sentence in <b>reverse order</b>, separated by <b>single spaces</b>, with no leading or trailing spaces. The input may contain extra spaces anywhere.</p>
+<pre>reverseWords("the sky is blue")   // "blue is sky the"
+reverseWords("  hello world  ")   // "world hello"</pre>`,
+  starter: String.raw`function reverseWords(s) {
+  // your code here
+}`,
+  tests: [
+    {args:["the sky is blue"], expected:"blue is sky the"},
+    {args:["  hello world  "], expected:"world hello"},
+    {args:["a"], expected:"a"},
+    {args:[""], expected:"", hidden:true},
+    {args:["a   good   example"], expected:"example good a", hidden:true},
+    {args:["   "], expected:"", hidden:true},
+  ],
+  hints: [
+    "<code>.trim()</code> removes spaces at both ends.",
+    "<code>.split(/\\s+/)</code> splits on any run of whitespace. Watch out for empty strings in the result.",
+  ],
+  solution: String.raw`function reverseWords(s) {
+  return s.trim().split(/\s+/).filter(Boolean).reverse().join(" ");
+}`
+},
+{
+  id: "title-case", title: "Title case", level: "Easy", fn: "titleCase",
+  desc: String.raw`<p>Words are separated by single spaces. Return the string with the <b>first letter of each word uppercase</b> and the <b>rest of each word lowercase</b>.</p>
+<pre>titleCase("hello world")        // "Hello World"
+titleCase("jAVAsCRIPT is FUN")  // "Javascript Is Fun"</pre>`,
+  starter: String.raw`function titleCase(s) {
+  // your code here
+}`,
+  tests: [
+    {args:["hello world"], expected:"Hello World"},
+    {args:["jAVAsCRIPT is FUN"], expected:"Javascript Is Fun"},
+    {args:["a"], expected:"A"},
+    {args:[""], expected:"", hidden:true},
+    {args:["éCOLE de MONTRÉAL"], expected:"École De Montréal", hidden:true},
+  ],
+  hints: [
+    "Split on <code>\" \"</code>, transform each word with <code>.map()</code>, then join it back.",
+    "<code>word[0].toUpperCase() + word.slice(1).toLowerCase()</code>, but don't crash on an empty string.",
+  ],
+  solution: String.raw`function titleCase(s) {
+  return s
+    .split(" ")
+    .map(w => w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w)
+    .join(" ");
+}`
+},
+{
+  id: "chunk", title: "Chunk an array", level: "Easy", fn: "chunk",
+  desc: String.raw`<p>Split the array into groups of length <code>size</code>. The last group may be smaller. <code>size</code> is always at least 1.</p>
+<pre>chunk([1,2,3,4,5], 2)  // [[1,2],[3,4],[5]]</pre>`,
+  starter: String.raw`function chunk(arr, size) {
+  // your code here
+}`,
+  tests: [
+    {args:[[1,2,3,4,5],2], expected:[[1,2],[3,4],[5]]},
+    {args:[[1,2,3],3], expected:[[1,2,3]]},
+    {args:[[],2], expected:[]},
+    {args:[[1,2,3],5], expected:[[1,2,3]], hidden:true},
+    {args:[["a","b","c","d"],1], expected:[["a"],["b"],["c"],["d"]], hidden:true},
+  ],
+  hints: [
+    "Loop with <code>i += size</code> instead of <code>i++</code>.",
+    "<code>arr.slice(i, i + size)</code> safely handles the last, shorter group.",
+  ],
+  solution: String.raw`function chunk(arr, size) {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}`
+},
+{
+  id: "flatten", title: "Deep flatten", level: "Medium", fn: "flatten",
+  desc: String.raw`<p>Flatten a nested array of <b>any depth</b> into a single-level array, keeping the order. Try it <b>without</b> <code>.flat()</code> first (recursion practice), then compare with <code>.flat(Infinity)</code>.</p>
+<pre>flatten([1,[2,[3,[4]]],5])  // [1,2,3,4,5]</pre>`,
+  starter: String.raw`function flatten(arr) {
+  // your code here
+}`,
+  tests: [
+    {args:[[1,[2,[3,[4]]],5]], expected:[1,2,3,4,5]},
+    {args:[[[1,2],[3]]], expected:[1,2,3]},
+    {args:[[]], expected:[]},
+    {args:[[[],[[]]]], expected:[], hidden:true},
+    {args:[["a",["b",["c"]]]], expected:["a","b","c"], hidden:true},
+  ],
+  hints: [
+    "For each item: if <code>Array.isArray(item)</code>, flatten it and add its items; otherwise push it.",
+    "Recursion: the function calls itself on nested arrays. Spread the result: <code>result.push(...flatten(item))</code>.",
+  ],
+  solution: String.raw`function flatten(arr) {
+  const result = [];
+  for (const item of arr) {
+    if (Array.isArray(item)) result.push(...flatten(item));
+    else result.push(item);
+  }
+  return result;
+}
+// One-liner alternative: return arr.flat(Infinity);`
+},
+{
+  id: "missing-number", title: "Missing number", level: "Medium", fn: "missingNumber",
+  desc: String.raw`<p>The array contains every number from <code>0</code> to <code>n</code> <b>except one</b>, in any order (so its length is <code>n</code>). Return the missing number.</p>
+<p><b>Performance:</b> a hidden test has 300,000 numbers and a 3-second limit. A loop that calls <code>.includes()</code> or <code>.indexOf()</code> on every number will be too slow.</p>
+<pre>missingNumber([3,0,1])  // 2</pre>`,
+  starter: String.raw`function missingNumber(nums) {
+  // your code here
+}`,
+  tests: [
+    {args:[[3,0,1]], expected:2},
+    {args:[[0,1]], expected:2},
+    {args:[[9,6,4,2,3,5,7,0,1]], expected:8},
+    {args:[[0]], expected:1, hidden:true},
+    {args:[[1]], expected:0, hidden:true},
+    {gen:"() => { const a = []; for (let i = 0; i <= 300000; i++) if (i !== 123456) a.push(i); return [a]; }", label:"300,000 numbers", expected:123456, hidden:true},
+  ],
+  hints: [
+    "The sum of 0..n is <code>n * (n + 1) / 2</code>.",
+    "Expected sum minus actual sum = the missing number. That's one pass, O(n). A <code>Set</code> also works.",
+  ],
+  solution: String.raw`function missingNumber(nums) {
+  const n = nums.length;
+  let sum = 0;
+  for (const x of nums) sum += x;
+  return (n * (n + 1)) / 2 - sum;
+}`
+},
+{
+  id: "max-profit", title: "Best time to buy and sell", level: "Medium", fn: "maxProfit",
+  desc: String.raw`<p><code>prices[i]</code> is a stock's price on day <code>i</code>. Buy once and sell once on a <b>later</b> day. Return the maximum profit, or <code>0</code> if you can't make a profit.</p>
+<p><b>Performance:</b> a hidden test has 200,000 prices. Nested loops will time out.</p>
+<pre>maxProfit([7,1,5,3,6,4])  // 5  (buy at 1, sell at 6)
+maxProfit([7,6,4,3,1])    // 0</pre>`,
+  starter: String.raw`function maxProfit(prices) {
+  // your code here
+}`,
+  tests: [
+    {args:[[7,1,5,3,6,4]], expected:5},
+    {args:[[7,6,4,3,1]], expected:0},
+    {args:[[2,4,1]], expected:2},
+    {args:[[]], expected:0, hidden:true},
+    {args:[[5]], expected:0, hidden:true},
+    {gen:"() => { const a = []; for (let i = 200000; i >= 1; i--) a.push(i); a.push(500000); return [a]; }", label:"200,001 prices", expected:499999, hidden:true},
+  ],
+  hints: [
+    "Walk through the prices once, keeping track of the lowest price seen so far.",
+    "At each day, the best you could do selling today is <code>price - minSoFar</code>. Keep the max of those.",
+  ],
+  solution: String.raw`function maxProfit(prices) {
+  let minPrice = Infinity;
+  let best = 0;
+  for (const p of prices) {
+    if (p < minPrice) minPrice = p;
+    else if (p - minPrice > best) best = p - minPrice;
+  }
+  return best;
+}`
+},
+{
+  id: "group-anagrams", title: "Group anagrams", level: "Medium", fn: "groupAnagrams",
+  desc: String.raw`<p>Group words that are anagrams of each other (all lowercase letters). Return an array of groups:</p>
+<ul><li>groups in the order their <b>first word</b> appears</li><li>words inside a group in their <b>original order</b></li></ul>
+<pre>groupAnagrams(["eat","tea","tan","ate","nat","bat"])
+// [["eat","tea","ate"],["tan","nat"],["bat"]]</pre>`,
+  starter: String.raw`function groupAnagrams(words) {
+  // your code here
+}`,
+  tests: [
+    {args:[["eat","tea","tan","ate","nat","bat"]], expected:[["eat","tea","ate"],["tan","nat"],["bat"]]},
+    {args:[[""]], expected:[[""]]},
+    {args:[[]], expected:[]},
+    {args:[["a"]], expected:[["a"]], hidden:true},
+    {args:[["abc","bca","xyz","cab","zyx"]], expected:[["abc","bca","cab"],["xyz","zyx"]], hidden:true},
+  ],
+  hints: [
+    "Anagrams have the same letters when sorted: <code>[...w].sort().join(\"\")</code> makes a key.",
+    "Use a <code>Map</code> from key → array of words. Maps keep insertion order, so <code>[...map.values()]</code> gives the groups in the right order.",
+  ],
+  solution: String.raw`function groupAnagrams(words) {
+  const groups = new Map();
+  for (const w of words) {
+    const key = [...w].sort().join("");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(w);
+  }
+  return [...groups.values()];
+}`
+},
+{
+  id: "api-users", title: "Fetch active users (async / API)", level: "API", fn: "getActiveUserNames",
+  desc: String.raw`<p>Write an <b>async</b> function that calls <code>fetch(url)</code>. The API returns a JSON array of users like <code>{ id, name, active }</code>.</p>
+<ul>
+<li>Return the <b>names of active users</b>, sorted alphabetically <b>ignoring case</b> (hint: <code>localeCompare</code>).</li>
+<li>If the response is not OK (for example 404), return <code>[]</code>.</li>
+<li>If the network request itself fails (<code>fetch</code> throws), return <code>[]</code>.</li>
+</ul>
+<p>A mock <code>fetch</code> is provided. URLs: <code>/api/users</code>, <code>/api/empty</code>, and a few hidden ones.</p>
+<pre>await getActiveUserNames("/api/users")  // ["Ali","Zara"]</pre>`,
+  starter: String.raw`async function getActiveUserNames(url) {
+  // your code here
+}`,
+  tests: [
+    {args:["/api/users"], expected:["Ali","Zara"]},
+    {args:["/api/empty"], expected:[]},
+    {args:["/api/does-not-exist"], expected:[], label:"404 response"},
+    {args:["/api/mixed-case"], expected:["Adam","beth","Carl"], hidden:true},
+    {args:["/api/down"], expected:[], hidden:true, label:"network error"},
+  ],
+  hints: [
+    "<code>fetch</code> does <b>not</b> reject on 404. Check <code>res.ok</code> yourself.",
+    "Wrap the whole thing in <code>try { ... } catch { return []; }</code> to handle network errors.",
+    "<code>.filter(u => u.active).map(u => u.name).sort((a, b) => a.localeCompare(b))</code>",
+  ],
+  solution: String.raw`async function getActiveUserNames(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const users = await res.json();
+    return users
+      .filter(u => u.active)
+      .map(u => u.name)
+      .sort((a, b) => a.localeCompare(b));
+  } catch (err) {
+    return [];
+  }
+}`
+},
+];
+
+// ===== Multiple-choice questions =====
+const MCQ = [
+// HTML
+{s:"HTML", q:"Which element is the best choice to wrap a site's main navigation links?",
+ o:["&lt;div class=\"nav\"&gt;","&lt;nav&gt;","&lt;section&gt;","&lt;header&gt;"], a:1,
+ e:"<code>&lt;nav&gt;</code> creates a navigation landmark that screen-reader users can jump to. A <code>div</code> has no meaning, and <code>header</code> is for introductory content (it often <i>contains</i> a nav)."},
+{s:"HTML", q:"Which markup correctly connects the label to <code>&lt;input id=\"phone\"&gt;</code>?",
+ o:["&lt;label for=\"#phone\"&gt;","&lt;label name=\"phone\"&gt;","&lt;label for=\"phone\"&gt;","&lt;label id=\"phone\"&gt;"], a:2,
+ e:"<code>for</code> takes the plain id value, no <code>#</code>. Duplicating the id on the label would also make the page invalid."},
+{s:"HTML", q:"What does <code>alt=\"\"</code> (empty alt) on an <code>&lt;img&gt;</code> mean?",
+ o:["The image failed to load","The image is decorative and screen readers should skip it","It's invalid HTML","The browser will generate a description"], a:1,
+ e:"An empty alt marks the image as decorative. Leaving <code>alt</code> out entirely is the error, because screen readers may then read the file name."},
+// CSS
+{s:"CSS", q:"Which selector has the highest specificity?",
+ o:[".btn.primary","button.btn","#submit","div button"], a:2,
+ e:"IDs beat classes, and classes beat elements. <code>#submit</code> is (1,0,0); <code>.btn.primary</code> is (0,2,0)."},
+{s:"CSS", q:"In a flex container with the default <code>flex-direction: row</code>, <code>justify-content</code> aligns items along which axis?",
+ o:["The horizontal (main) axis","The vertical (cross) axis","Both axes","Neither; it only affects text"], a:0,
+ e:"<code>justify-content</code> works on the main axis (horizontal for a row) and <code>align-items</code> on the cross axis. With <code>flex-direction: column</code> they swap."},
+{s:"CSS", q:"With <code>box-sizing: border-box</code>, an element's <code>width</code> includes:",
+ o:["Content only","Content + padding + border + margin","Margin only","Content + padding + border"], a:3,
+ e:"<code>border-box</code> includes padding and border in the width, but never margin. The default, <code>content-box</code>, counts the content only."},
+{s:"CSS", q:"An element with <code>position: absolute</code> is positioned relative to:",
+ o:["Always its direct parent","Its nearest ancestor whose position isn't static","Always the viewport","Always the &lt;body&gt;"], a:1,
+ e:"It uses the nearest <i>positioned</i> ancestor (relative, absolute, fixed or sticky). If there isn't one, it uses the initial containing block. That's why you often add <code>position: relative</code> to the parent."},
+// JS
+{s:"JS", q:"What does <code>typeof null</code> return?",
+ o:["\"null\"","\"undefined\"","\"object\"","\"number\""], a:2,
+ e:"A long-standing JavaScript quirk: <code>typeof null === \"object\"</code>. To check for null, use <code>x === null</code>."},
+{s:"JS", q:"What is <code>1 + 2 + \"3\"</code>?",
+ o:["\"123\"","\"33\"","6","NaN"], a:1,
+ e:"It's evaluated left to right: <code>1 + 2 = 3</code>, then <code>3 + \"3\"</code> is string concatenation, giving <code>\"33\"</code>. (<code>\"1\" + 2 + 3</code> would give <code>\"123\"</code>.)"},
+{s:"JS", q:"What does this log?<pre>for (var i = 0; i &lt; 3; i++) {\n  setTimeout(() =&gt; console.log(i));\n}</pre>",
+ o:["0 1 2","3 3 3","undefined undefined undefined","An error"], a:1,
+ e:"<code>var</code> is function-scoped, so all three callbacks share one <code>i</code>, which is 3 by the time they run. With <code>let</code>, each iteration gets its own <code>i</code>, so it logs 0 1 2."},
+{s:"JS", q:"What is <code>result</code>?<pre>const result = [1, 2, 3].forEach(n =&gt; n * 2);</pre>",
+ o:["[2, 4, 6]","[1, 2, 3]","undefined","6"], a:2,
+ e:"<code>forEach</code> always returns <code>undefined</code>. Use <code>map</code> to get a new array back."},
+// API
+{s:"API", q:"In a REST API, which HTTP method is normally used to <b>create</b> a new resource?",
+ o:["GET","POST","PATCH","DELETE"], a:1,
+ e:"POST creates. GET reads, PUT replaces, PATCH partially updates, DELETE removes."},
+{s:"API", q:"Which status code means a resource was <b>successfully created</b>?",
+ o:["200 OK","204 No Content","201 Created","202 Accepted"], a:2,
+ e:"201 Created, often with a <code>Location</code> header pointing to the new resource. 200 is a generic success, 204 is success with no body, and 202 means accepted but not finished yet."},
+{s:"API", q:"A request has <b>no valid login credentials</b>. Which status code fits best?",
+ o:["400 Bad Request","401 Unauthorized","403 Forbidden","404 Not Found"], a:1,
+ e:"401 means you're not authenticated (who are you?). 403 means you're authenticated but not allowed (I know who you are, but no). 400 is a malformed request."},
+{s:"API", q:"<code>fetch(\"/api/item\")</code> gets a <b>404</b> response. What happens?",
+ o:["The promise rejects","fetch throws synchronously","It returns null","The promise resolves and res.ok is false"], a:3,
+ e:"<code>fetch</code> only rejects on network failure. For HTTP errors you must check <code>res.ok</code> or <code>res.status</code> yourself."},
+{s:"API", q:"Which HTTP method is <b>not</b> idempotent?",
+ o:["GET","PUT","POST","DELETE"], a:2,
+ e:"Idempotent means repeating the request has the same effect as doing it once. Sending POST twice usually creates two resources. PUT and DELETE give the same end state however many times you repeat them."},
+{s:"API", q:"You're sending a JSON body in a POST request. Which header tells the server the body is JSON?",
+ o:["Accept: application/json","Authorization: application/json","Content-Type: application/json","X-Format: json"], a:2,
+ e:"<code>Content-Type</code> describes what you're sending. <code>Accept</code> says what format you want back."},
+{s:"API", q:"Your front end calls an API on another domain and gets a <b>CORS error</b>. Who is blocking the response?",
+ o:["The browser","The API server's firewall","Your DNS provider","Node.js"], a:0,
+ e:"CORS is enforced by the browser. The server has to send headers like <code>Access-Control-Allow-Origin</code> to allow it. The same request from curl or a server would work."},
+];
+
+if (typeof module !== "undefined") module.exports = { Q, MCQ };
+
+
+// ---------- storage (best-effort) ----------
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("jp2:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem("jp2:" + k, JSON.stringify(v)); } catch {} }
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- tabs ----------
+const tabs = [...document.querySelectorAll(".tab")];
+function showTab(id){
+  tabs.forEach(t => {
+    const on = t.id === id;
+    t.setAttribute("aria-selected", on);
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  store.set("tab", id);
+}
+tabs.forEach(t => t.addEventListener("click", () => showTab(t.id)));
+showTab(store.get("tab", "tab-mcq"));
+
+// ---------- timer ----------
+const clock = document.getElementById("clock"), timerBtn = document.getElementById("timerBtn");
+let remaining = 120 * 60, tick = null;
+function draw(){ const m = Math.floor(remaining / 60), s = remaining % 60; clock.textContent = m + ":" + String(s).padStart(2, "0"); }
+timerBtn.addEventListener("click", () => {
+  if (tick) { clearInterval(tick); tick = null; timerBtn.textContent = "Resume"; return; }
+  timerBtn.textContent = "Pause";
+  tick = setInterval(() => { remaining = Math.max(0, remaining - 1); draw(); if (!remaining) { clearInterval(tick); tick = null; clock.textContent = "Time's up"; timerBtn.textContent = "Start 120-min timer"; } }, 1000);
+});
+document.getElementById("timerReset").addEventListener("click", () => { clearInterval(tick); tick = null; remaining = 120 * 60; draw(); timerBtn.textContent = "Start 120-min timer"; });
+draw();
+
+// ---------- multiple choice ----------
+const mcqEl = document.getElementById("mcq");
+const mcqAnswers = store.get("mcq", {});
+function renderMCQ(){
+  let html = "";
+  MCQ.forEach((m, i) => {
+    const chosen = mcqAnswers[i];
+    html += `<fieldset><legend><span class="sec">${m.s}</span>${i + 1}. </legend><div>${m.q}</div>`;
+    m.o.forEach((opt, j) => {
+      let cls = "";
+      if (chosen !== undefined) { if (j === m.a) cls = "right"; else if (j === chosen) cls = "wrong"; }
+      html += `<label class="opt ${cls}"><input type="radio" name="m${i}" value="${j}" ${chosen === j ? "checked" : ""} ${chosen !== undefined ? "disabled" : ""}> <span>${opt}</span></label>`;
+    });
+    if (chosen !== undefined) html += `<div class="expl" role="status"><b>${chosen === m.a ? "Correct." : "Not quite."}</b> ${m.e}</div>`;
+    html += `</fieldset>`;
+  });
+  const answered = Object.keys(mcqAnswers).length;
+  const right = Object.entries(mcqAnswers).filter(([i, v]) => MCQ[i].a === v).length;
+  html += `<div class="row"><div class="score">Score: ${right} / ${answered} answered (${MCQ.length} total)</div><button class="btn" id="mcqReset">Reset answers</button></div>`;
+  mcqEl.innerHTML = html;
+  document.getElementById("mcqReset").onclick = () => { for (const k in mcqAnswers) delete mcqAnswers[k]; store.set("mcq", mcqAnswers); renderMCQ(); };
+}
+mcqEl.addEventListener("change", e => {
+  if (e.target.type !== "radio") return;
+  const i = +e.target.name.slice(1);
+  if (mcqAnswers[i] !== undefined) return;
+  mcqAnswers[i] = +e.target.value; store.set("mcq", mcqAnswers);
+  const y = window.scrollY; renderMCQ(); window.scrollTo(0, y);
+  const radio = mcqEl.querySelector(`input[name="m${i}"][value="${mcqAnswers[i]}"]`); if (radio) radio.focus({preventScroll:true});
+});
+renderMCQ();
+
+// ---------- coding: worker runner ----------
+const WORKER_SRC = `
+const MOCK = {
+  "/api/users": [{id:1,name:"Zara",active:true},{id:2,name:"Ben",active:false},{id:3,name:"Ali",active:true}],
+  "/api/empty": [],
+  "/api/mixed-case": [{id:1,name:"beth",active:true},{id:2,name:"Carl",active:true},{id:3,name:"Zed",active:false},{id:4,name:"Adam",active:true}]
+};
+async function mockFetch(url){
+  if (url === "/api/down") throw new TypeError("Failed to fetch");
+  if (Object.prototype.hasOwnProperty.call(MOCK, url)) return { ok:true, status:200, json: async () => JSON.parse(JSON.stringify(MOCK[url])) };
+  return { ok:false, status:404, json: async () => ({ error: "Not found" }) };
+}
+self.onmessage = async (e) => {
+  const { code, fn, args, gen } = e.data;
+  const logs = [];
+  const fmt = v => { try { return typeof v === "string" ? v : JSON.stringify(v); } catch { return String(v); } };
+  const con = { log: (...a) => logs.push(a.map(fmt).join(" ")) };
+  con.error = con.warn = con.info = con.log;
+  try {
+    const f = new Function("fetch", "console", code + "\\n;return typeof " + fn + " === 'function' ? " + fn + " : undefined;")(mockFetch, con);
+    if (!f) throw new Error(fn + " is not defined. Keep the function name from the starter code.");
+    const a = gen ? (new Function("return (" + gen + ")"))()() : args;
+    let r = f(...a);
+    if (r && typeof r.then === "function") r = await r;
+    postMessage({ ok:true, result: r === undefined ? "undefined" : JSON.stringify(r), logs });
+  } catch (err) {
+    postMessage({ ok:false, error: (err && err.name ? err.name + ": " : "") + (err && err.message || String(err)), logs });
+  }
+};`;
+const workerURL = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+
+function runOne(code, q, t){
+  return new Promise(resolve => {
+    let w;
+    try { w = new Worker(workerURL); } catch (err) { resolve({ ok:false, error:"Couldn't start the test runner: " + err.message, logs:[] }); return; }
+    const timer = setTimeout(() => { w.terminate(); resolve({ ok:false, error:"Timed out (over 3 seconds). Try a faster approach.", logs:[] }); }, 3000);
+    w.onmessage = e => { clearTimeout(timer); w.terminate(); resolve(e.data); };
+    w.onerror = e => { clearTimeout(timer); w.terminate(); resolve({ ok:false, error: e.message || "Syntax error", logs:[] }); e.preventDefault(); };
+    w.postMessage({ code, fn: q.fn, args: t.args, gen: t.gen });
+  });
+}
+
+// ---------- coding: UI ----------
+const qlist = document.getElementById("qlist"), qcard = document.getElementById("qcard");
+const solved = store.get("solved", {});
+let current = store.get("current", Q[0].id);
+if (!Q.some(q => q.id === current)) current = Q[0].id;
+
+function renderList(){
+  qlist.innerHTML = Q.map((q, i) =>
+    `<li><button class="qitem" data-id="${q.id}" aria-current="${q.id === current}">
+      <span>${i + 1}. ${esc(q.title)} ${solved[q.id] ? '<span class="done" aria-label="solved">✓</span>' : ""}</span>
+      <span class="lvl">${q.level}</span></button></li>`).join("");
+}
+qlist.addEventListener("click", e => {
+  const b = e.target.closest(".qitem"); if (!b) return;
+  current = b.dataset.id; store.set("current", current); renderList(); renderQ();
+});
+
+function renderQ(){
+  const q = Q.find(x => x.id === current);
+  const code = store.get("code:" + q.id, q.starter);
+  qcard.innerHTML = `
+    <h2>${esc(q.title)} <span class="lvl">${q.level}</span></h2>
+    ${q.desc}
+    <label for="editor" class="sr">Code editor</label>
+    <textarea class="editor" id="editor" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(code)}</textarea>
+    <div class="row">
+      <button class="btn primary" id="run">Run tests</button>
+      <button class="btn" id="resetCode">Reset code</button>
+      <span class="note" style="margin:0">${q.tests.length} tests (${q.tests.filter(t => t.hidden).length} hidden)</span>
+    </div>
+    <div id="out" aria-live="polite"></div>
+    ${q.hints.map((h, i) => `<details><summary>Hint ${i + 1}</summary><p>${h}</p></details>`).join("")}
+    <details><summary>Solution</summary><pre><code>${esc(q.solution)}</code></pre></details>`;
+  const ed = document.getElementById("editor");
+  ed.addEventListener("input", () => store.set("code:" + q.id, ed.value));
+  ed.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(q); return; }
+    if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      const s = ed.selectionStart, en = ed.selectionEnd;
+      ed.value = ed.value.slice(0, s) + "  " + ed.value.slice(en);
+      ed.selectionStart = ed.selectionEnd = s + 2;
+      store.set("code:" + q.id, ed.value);
+    }
+  });
+  document.getElementById("run").onclick = () => run(q);
+  document.getElementById("resetCode").onclick = () => { ed.value = q.starter; store.set("code:" + q.id, q.starter); document.getElementById("out").innerHTML = ""; };
+}
+
+async function run(q){
+  const code = document.getElementById("editor").value;
+  const out = document.getElementById("out");
+  const runBtn = document.getElementById("run");
+  runBtn.disabled = true; out.innerHTML = '<p class="note">Running…</p>';
+  const rows = []; let passed = 0; const allLogs = [];
+  for (let i = 0; i < q.tests.length; i++) {
+    const t = q.tests[i];
+    const r = await runOne(code, q, t);
+    const exp = JSON.stringify(t.expected);
+    const ok = r.ok && r.result === exp;
+    if (ok) passed++;
+    if (r.logs && r.logs.length) allLogs.push(`Test ${i + 1}:\n` + r.logs.slice(0, 50).join("\n"));
+    const input = t.label ? t.label : t.args.map(a => JSON.stringify(a)).join(", ");
+    let body;
+    if (t.hidden) body = ok ? "Hidden test passed" : "Hidden test failed" + (t.label ? ` (${esc(t.label)})` : "") + (r.ok ? "" : `: ${esc(r.error)}`);
+    else body = `<div class="mono">Input: ${esc(input)}</div><div class="mono">Expected: ${esc(exp)}</div>` +
+      (r.ok ? `<div class="mono">Got: ${esc(r.result)}</div>` : `<div class="mono">Error: ${esc(r.error)}</div>`);
+    rows.push(`<li class="${ok ? "pass" : "fail"}"><b>${ok ? "✓" : "✗"} Test ${i + 1}</b> ${body}</li>`);
+  }
+  if (passed === q.tests.length) { solved[q.id] = true; store.set("solved", solved); renderList(); }
+  out.innerHTML = `<p class="summary">${passed} / ${q.tests.length} passed${passed === q.tests.length ? " 🎉" : ""}</p><ul class="results">${rows.join("")}</ul>` +
+    (allLogs.length ? `<details open><summary>console.log output</summary><pre class="logs">${esc(allLogs.join("\n\n"))}</pre></details>` : "");
+  runBtn.disabled = false;
+}
+
+renderList(); renderQ();
+
+// ---------- references ----------
+const refs = document.getElementById("refs");
+refs.value = store.get("refs", "");
+refs.addEventListener("input", () => store.set("refs", refs.value));
+document.getElementById("refsTemplate").onclick = () => {
+  refs.value = (refs.value ? refs.value + "\n\n" : "") +
+`Sources used:
+- MDN Web Docs: looked up [topic] for question [#]; used it to [what].
+- AI (name of tool): asked "[general question]"; used [the pattern/line/explanation] in question [#]. Logic/approach was my own / adapted from the answer.
+- None used for questions [#, #].`;
+  store.set("refs", refs.value); refs.focus();
+};
+</script>
+</body>
+</html>
