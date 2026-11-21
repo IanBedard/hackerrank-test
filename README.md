@@ -19,3 +19,11 @@ Open `index.html` locally or view it on GitHub Pages.
 - **Coding:** 9 JavaScript problems, including an async `fetch` question with a mock API and large-input performance tests
 - **References:** practice writing the "sources used" note
 - Optional 120-minute timer
+
+## Practice Set 3: Mock Test
+
+`set3.html` follows the real test's layout exactly, with all-new questions:
+
+- **11 multiple choice:** 2 HTML, 3 CSS, 2 JavaScript, 4 API
+- **3 coding (JavaScript):** group by category, string compression, and a paginated async `fetch` question with a mock API
+- **References:** practice writing the "sources used" note
